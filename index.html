@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Score Predictor</title>
-    <!-- Use the Inter font from Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -21,18 +19,15 @@
 
     <div class="w-full h-screen flex flex-col items-center justify-center p-4">
         <div class="w-full max-w-2xl bg-gray-800 rounded-2xl shadow-2xl p-8 md:p-12">
-            <!-- Title and description -->
             <h1 class="text-3xl md:text-4xl font-extrabold text-white text-center mb-2">Movie Score Predictor</h1>
             <p class="text-gray-400 text-center mb-8 text-lg">
                 Movie Rating Prediction
             </p>
 
-            <!-- Introductory paragraph -->
             <p class="text-sm text-gray-400 text-center mb-6">
                 Welcome to the Movie Rating Predictor. This tool analyzes key data points from unreleased movies to forecast their potential audience score on a scale of 1 to 10. Simply paste an IMDb link below and let our model do the rest. The predicted score is based on a machine learning model trained on historical movie data.
             </p>
 
-            <!-- Input Form -->
             <div class="space-y-6">
                 <div>
                     <label for="imdb_link" class="block text-sm font-medium text-gray-400">IMDb Link</label>
@@ -44,7 +39,6 @@
                 </button>
             </div>
 
-            <!-- Result Display -->
             <div id="result-container" class="mt-8 hidden">
                 <h3 class="text-xl font-bold text-white text-center mb-4">Prediction Result</h3>
                 <div class="bg-gray-700 rounded-lg p-6 text-center shadow-inner">
@@ -90,7 +84,6 @@
                 return;
             }
 
-            // In a real application, you would make an API call here.
             try {
                 const response = await fetch('http://127.0.0.1:5000/predict', {
                     method: 'POST',
