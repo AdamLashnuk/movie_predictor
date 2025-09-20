@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Score Predictor</title>
+    <!-- Use the Inter font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply bg-gray-900 text-gray-200;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div class="w-full h-screen flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-gray-800 rounded-2xl shadow-2xl p-8 md:p-12">
+            <!-- Title and description -->
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white text-center mb-2">Movie Score Predictor</h1>
+            <p class="text-gray-400 text-center mb-8 text-lg">
+                Movie Rating Prediction
+            </p>
+
+            <!-- Introductory paragraph -->
+            <p class="text-sm text-gray-400 text-center mb-6">
+                Welcome to the Movie Rating Predictor. This tool analyzes key data points from unreleased movies to forecast their potential audience score on a scale of 1 to 10. Simply paste an IMDb link below and let our model do the rest. The predicted score is based on a machine learning model trained on historical movie data.
+            </p>
+
+            <!-- Input Form -->
+            <div class="space-y-6">
+                <div>
+                    <label for="imdb_link" class="block text-sm font-medium text-gray-400">IMDb Link</label>
+                    <input type="text" id="imdb_link" class="mt-1 block w-full rounded-lg border-gray-600 bg-gray-700 p-3 text-white focus:ring-purple-500 focus:border-purple-500 transition duration-300" placeholder="Paste a link to an unreleased movie from IMDb">
+                </div>
+
+                <button id="predict-button" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition-transform duration-300 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                    Predict Score
+                </button>
+            </div>
+
+            <!-- Result Display -->
+            <div id="result-container" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-white text-center mb-4">Prediction Result</h3>
+                <div class="bg-gray-700 rounded-lg p-6 text-center shadow-inner">
+                    <p class="text-lg font-medium text-gray-300 mb-2">Predicted Score</p>
+                    <p id="predicted-score" class="text-5xl font-extrabold text-purple-400">
+                        --
+                    </p>
+                    <p id="message" class="mt-2 text-gray-400 text-sm"></p>
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-500 text-center mt-6">
+                Disclaimer: This is a predictive model. The actual movie rating may vary based on critical reviews and audience reception upon release.
+            </p>
+        </div>
+    </div>
+
+    <!-- JavaScript for interaction -->
+    <script>
+        document.getElementById('predict-button').addEventListener('click', async () => {
+            const imdbLink = document.getElementById('imdb_link').value;
+
+            const resultContainer = document.getElementById('result-container');
+            const predictedScoreElement = document.getElementById('predicted-score');
+            const messageElement = document.getElementById('message');
+
+            predictedScoreElement.textContent = '...';
+            resultContainer.classList.remove('hidden');
+            messageElement.textContent = 'Calculating...';
+
+            if (!imdbLink) {
+                alert("Please enter a valid IMDb link.");
+                predictedScoreElement.textContent = '--';
+                messageElement.textContent = '';
+                return;
+            }
+
+            const imdbIdMatch = imdbLink.match(/tt\d{7,8}/);
+            if (!imdbIdMatch) {
+                alert("Please enter a valid IMDb link (e.g., https://www.imdb.com/title/tt1234567/).");
+                predictedScoreElement.textContent = '--';
+                messageElement.textContent = '';
+                return;
+            }
+
+            // In a real application, you would make an API call here.
+            try {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imdb_link: imdbLink })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.predicted_score !== undefined) {
+                    predictedScoreElement.textContent = data.predicted_score.toFixed(2);
+                    messageElement.textContent = 'This score is a prediction based on the TMDb data for this movie.';
+                } else {
+                    throw new Error(data.error || 'Prediction failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                predictedScoreElement.textContent = 'Error';
+                messageElement.textContent = error.message;
+            }
+        });
+
+        // A custom modal for messages instead of alert()
+        function alert(message) {
+            const modalHtml = `
+                <div id="custom-alert-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+                    <div class="bg-gray-800 rounded-lg p-6 shadow-xl w-80 text-center">
+                        <p class="text-lg font-semibold mb-4 text-white">${message}</p>
+                        <button onclick="document.getElementById('custom-alert-modal').remove()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+    </script>
+
+</body>
+</html>
