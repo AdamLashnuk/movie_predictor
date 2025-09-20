@@ -13,7 +13,7 @@ class MovieScorePredictor:
         self.features = [col for col in data.columns if col != target_column]
         X = data[self.features]
         y = data[target_column]
-
+#hi
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         self.model.fit(X_train, y_train)
 
