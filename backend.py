@@ -1,4 +1,9 @@
 import pandas as pd
+
+
+API_KEY = "363a7a5daa3b3122de487e794b02482a"
+BASE_URL = "https://www.themoviedb.org/movie/upcoming"
+
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 
