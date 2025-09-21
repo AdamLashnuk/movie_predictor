@@ -1,27 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Score Predictor</title>
-    <!-- Use Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movie Score Predictor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #1f2937;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Left bar flowing down */
+    .left-bar {
+        position: fixed;
+        left: 0;
+        top: -100%;
+        width: 10px;
+        height: 100%;
+        background: linear-gradient(to bottom, #14b8a6, #0d9488);
+        animation: flowDown 5s linear infinite;
+        z-index: 0;
+    }
+
+    @keyframes flowDown {
+        0% { top: -100%; }
+        100% { top: 100%; }
+    }
+
+    /* Right bar flowing up */
+    .right-bar {
+        position: fixed;
+        right: 0;
+        top: 100%;
+        width: 10px;
+        height: 100%;
+        background: linear-gradient(to top, #4ade80, #16a34a);
+        animation: flowUp 5s linear infinite;
+        z-index: 0;
+    }
+
+    @keyframes flowUp {
+        0% { top: 100%; }
+        100% { top: -100%; }
+    }
+</style>
 </head>
-<body class="bg-gray-900 text-gray-100 p-4 min-h-screen flex items-center justify-center">
-    <div class="container mx-auto p-8 bg-gray-800 rounded-xl shadow-lg border border-gray-700 max-w-2xl w-full">
+<body class="text-gray-100 p-4 min-h-screen flex items-center justify-center">
+    <div class="left-bar"></div>
+    <div class="right-bar"></div>
+
+    <div class="container mx-auto p-8 bg-gray-800 rounded-xl shadow-lg border border-gray-700 max-w-2xl w-full relative z-10">
         <h1 class="text-4xl font-bold text-center text-teal-400 mb-2 animate-pulse">Movie Score Predictor</h1>
         <p class="text-center text-gray-400 mb-8">
-            Select a movie from the list below to get its predicted score based on a small, hardcoded dataset.
+            Select a movie from the list below to get its predicted score.
         </p>
 
-        <div id="movie-list" class="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-            <!-- Movie buttons will be populated here by JavaScript -->
-        </div>
+        <div id="movie-list" class="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2"></div>
 
         <div id="result-area" class="mt-8 p-6 bg-gray-700 rounded-xl border border-gray-600 shadow-inner hidden">
             <h2 class="text-2xl font-semibold mb-4 text-teal-300">Prediction Results</h2>
@@ -32,12 +69,9 @@
                 </svg>
                 <p class="mt-2 text-gray-400">Predicting score...</p>
             </div>
-            <div id="prediction-info" class="space-y-2">
-                <!-- Prediction data will be populated here -->
-            </div>
+            <div id="prediction-info" class="space-y-2"></div>
         </div>
 
-        <!-- Pop-up for errors -->
         <div id="error-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
             <div class="bg-red-800 p-6 rounded-xl shadow-xl text-center border-2 border-red-500">
                 <h3 class="text-2xl font-bold text-red-300 mb-2">Error</h3>
@@ -48,24 +82,16 @@
     </div>
 
     <script>
-        // Hardcoded movie data to build the UI, must match the Python file
         const upcoming_movies_data = [
-            "The Batman - Part II",
-            "TRON: Ares",
-            "Blade",
-            "The Super Mario Galaxy Movie",
-            "Elio",
-            "How to Train Your Dragon",
-            "F1",
-            "Mission: Impossible – The Final Reckoning",
-            "The Mandalorian and Grogu",
-            "Masters of the Universe",
-            "Mortal Kombat II",
-            "Toy Story 5",
-            "Supergirl: Woman of Tomorrow"
+            "The Batman - Part II", "TRON: Ares", "Blade", "The Super Mario Galaxy Movie", "Elio",
+            "How to Train Your Dragon", "F1", "Mission: Impossible – The Final Reckoning",
+            "The Mandalorian and Grogu", "Masters of the Universe", "Mortal Kombat II", "Toy Story 5",
+            "Supergirl: Woman of Tomorrow", "Avengers: Secret Wars", "Deadpool & Wolverine",
+            "Joker: Folie à Deux", "Fantastic Four", "Spider-Man: Beyond the Spider-Verse",
+            "Guardians of the Galaxy Vol. 4", "Doctor Strange 3", "Captain America: Brave New World",
+            "Thunderbolts", "Shang-Chi 2", "Eternals 2", "Ironheart"
         ];
 
-        // Get the DOM elements
         const movieList = document.getElementById('movie-list');
         const resultArea = document.getElementById('result-area');
         const loadingIndicator = document.getElementById('loading');
@@ -73,37 +99,31 @@
         const errorPopup = document.getElementById('error-popup');
         const errorMessage = document.getElementById('error-message');
 
-        // Function to show a custom error pop-up
         function showError(message) {
             errorMessage.textContent = message;
             errorPopup.classList.remove('hidden');
         }
 
-        // Function to create and append movie buttons
         function createMovieButtons() {
             upcoming_movies_data.forEach(movieTitle => {
                 const button = document.createElement('button');
                 button.textContent = movieTitle;
-                button.className = "w-full p-4 bg-gray-700 hover:bg-600 text-center font-semibold rounded-lg shadow-md transition-all transform hover:scale-105 active:scale-95 border-2 border-gray-600 hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500";
+                button.className = "w-full p-4 bg-gray-700 hover:bg-gray-600 text-center font-semibold rounded-lg shadow-md transition-all transform hover:scale-105 active:scale-95 border-2 border-gray-600 hover:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500";
                 button.onclick = () => getPrediction(movieTitle);
                 movieList.appendChild(button);
             });
         }
 
-        // Function to handle the prediction request
         async function getPrediction(movieTitle) {
             resultArea.classList.add('hidden');
             loadingIndicator.classList.remove('hidden');
             predictionInfo.innerHTML = '';
 
             try {
-                // The URL of your Flask server's prediction endpoint
                 const url = 'http://localhost:5000/predict';
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ movie_title: movieTitle })
                 });
 
@@ -113,12 +133,9 @@
                 }
 
                 const data = await response.json();
-
-                // Clear previous results and show the results area
                 loadingIndicator.classList.add('hidden');
                 resultArea.classList.remove('hidden');
 
-                // Display the results
                 predictionInfo.innerHTML = `
                     <p class="text-gray-300"><span class="font-bold text-teal-400">Movie Title:</span> ${movieTitle}</p>
                     <p class="text-gray-300"><span class="font-bold text-teal-400">Predicted Score:</span> <span class="text-xl font-bold text-yellow-400">${data.predicted_score.toFixed(2)}</span> / 10</p>
@@ -126,7 +143,6 @@
                     <p class="text-gray-300"><span class="font-bold text-teal-400">Model RMSE:</span> ${data.rmse.toFixed(4)}</p>
                     <p class="text-gray-500 mt-4 text-sm">${data.info}</p>
                 `;
-
             } catch (error) {
                 loadingIndicator.classList.add('hidden');
                 console.error('Prediction failed:', error);
@@ -134,7 +150,6 @@
             }
         }
 
-        // Initialize the UI on page load
         document.addEventListener('DOMContentLoaded', createMovieButtons);
     </script>
 </body>
